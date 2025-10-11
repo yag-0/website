@@ -1,0 +1,21 @@
+{% extends "base.html" %} {% block title %}Зворотній звязок{% endblock %} {% block
+content %}
+<h1 class="text-3xl font-bold mb-4">зворотній звязок</h1>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+        <p class="text-lg">
+            Номер телефону- 066-000-00-00
+            Телеграм канал- technoinlutsk
+            Інстаграм - techno.lutsk
+        </p>
+    </div>
+
+    <div>
+        <img
+            src="{{ url_for('static', filename='b39b2493-1-15564.jpg') }}"
+            alt="Placeholder"
+            class="w-full rounded-lg shadow-md"
+        />
+    </div>
+</div>
+{% endblock %}

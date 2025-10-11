@@ -11,7 +11,7 @@ def about():
     return render_template('about.html')
 
 @app.route('/HELP')
-def about():
+def helppage():
     return render_template('HELP.html')
 
 if __name__ == '__main__':

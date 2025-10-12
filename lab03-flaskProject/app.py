@@ -14,5 +14,9 @@ def about():
 def helppage():
     return render_template('HELP.html')
 
+@app.route('/market')
+def market():
+    return render_template('market.html')
+
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Відгуки - Адмін{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">Відгуки</h1>
+<table class="w-full bg-white rounded shadow">
+    <thead>
+        <tr class="text-left border-b">
+            <th class="p-2">ID</th>
+            <th class="p-2">Ім'я</th>
+            <th class="p-2">Email</th>
+            <th class="p-2">Повідомлення</th>
+            <th class="p-2">Час</th>
+            <th class="p-2">Дія</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for f in feedbacks %}
+            <tr class="border-b">
+                <td class="p-2">{{ f.id }}</td>
+                <td class="p-2">{{ f.name or '-' }}</td>
+                <td class="p-2">{{ f.email or '-' }}</td>
+                <td class="p-2">{{ f.message }}</td>
+                <td class="p-2">{{ f.created_at }}</td>
+                <td class="p-2">
+                    <form action="{{ url_for('admin_feedback_delete', fb_id=f.id) }}" method="post" onsubmit="return confirm('Видалити відгук?');">
+                        <button class="bg-red-500 text-white px-3 py-1 rounded">Видалити</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

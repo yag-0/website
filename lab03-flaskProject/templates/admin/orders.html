@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Замовлення - Адмін{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">Замовлення</h1>
+<table class="w-full bg-white rounded shadow">
+    <thead>
+        <tr class="text-left border-b">
+            <th class="p-2">ID</th>
+            <th class="p-2">Клієнт</th>
+            <th class="p-2">Статус</th>
+            <th class="p-2">Товари</th>
+            <th class="p-2">Час</th>
+            <th class="p-2">Дія</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for o in orders %}
+            <tr class="border-b align-top">
+                <td class="p-2">{{ o.id }}</td>
+                <td class="p-2">{{ o.customer.name or '' }}<br>{{ o.customer.email or '' }}</td>
+                <td class="p-2">
+                    <form action="{{ url_for('admin_orders_update_status', order_id=o.id) }}" method="post">
+                        <select name="status" class="p-1 border rounded">
+                            {% for s in ['new','processing','shipped','completed','cancelled'] %}
+                                <option value="{{ s }}" {% if o.status==s %}selected{% endif %}>{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="bg-blue-500 text-white px-2 py-1 rounded ml-2">Оновити</button>
+                    </form>
+                </td>
+                <td class="p-2">
+                    <ul class="list-disc pl-5">
+                        {% for item in o.items %}
+                            <li>{{ item.product.name }} x{{ item.quantity }} ({{ '%.2f'|format(item.price) }} грн)</li>
+                        {% endfor %}
+                    </ul>
+                </td>
+                <td class="p-2">{{ o.created_at }}</td>
+                <td class="p-2"></td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

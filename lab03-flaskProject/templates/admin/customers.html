@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Клієнти - Адмін{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">Клієнти</h1>
+<table class="w-full bg-white rounded shadow">
+    <thead>
+        <tr class="text-left border-b">
+            <th class="p-2">ID</th>
+            <th class="p-2">Ім'я</th>
+            <th class="p-2">Email</th>
+            <th class="p-2">Телефон</th>
+            <th class="p-2">Дія</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in customers %}
+            <tr class="border-b">
+                <td class="p-2">{{ c.id }}</td>
+                <td class="p-2">{{ c.name }}</td>
+                <td class="p-2">{{ c.email }}</td>
+                <td class="p-2">{{ c.phone }}</td>
+                <td class="p-2">
+                    <form action="{{ url_for('admin_customers_delete', customer_id=c.id) }}" method="post" onsubmit="return confirm('Видалити клієнта?');">
+                        <button class="bg-red-500 text-white px-3 py-1 rounded">Видалити</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

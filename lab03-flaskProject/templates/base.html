@@ -59,6 +59,23 @@
     </nav>
 
     <div class="container mx-auto mt-8 p-4">
+        {# Flash messages #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="space-y-2 mb-4">
+                    {% for category, msg in messages %}
+                        {% if category == 'error' %}
+                            <div class="p-3 rounded bg-red-200 text-red-800" role="alert">{{ msg }}</div>
+                        {% elif category == 'success' %}
+                            <div class="p-3 rounded bg-green-200 text-green-800" role="alert">{{ msg }}</div>
+                        {% else %}
+                            <div class="p-3 rounded bg-blue-200 text-blue-800" role="alert">{{ msg }}</div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
         {% block content %}{% endblock %}
     </div>
 

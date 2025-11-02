@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Товари - Адмін{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">Товари</h1>
+<table class="w-full bg-white rounded shadow">
+    <thead>
+        <tr class="text-left border-b">
+            <th class="p-2">ID</th>
+            <th class="p-2">Назва</th>
+            <th class="p-2">Ціна</th>
+            <th class="p-2">Наявність</th>
+            <th class="p-2">Категорія</th>
+            <th class="p-2">Дія</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in products %}
+            <tr class="border-b">
+                <td class="p-2">{{ p.id }}</td>
+                <td class="p-2">{{ p.name }}</td>
+                <td class="p-2">{{ '%.2f'|format(p.price) }}</td>
+                <td class="p-2">{{ p.stock }}</td>
+                <td class="p-2">{{ p.category or '-' }}</td>
+                <td class="p-2">
+                    <form action="{{ url_for('admin_products_delete', product_id=p.id) }}" method="post" onsubmit="return confirm('Видалити товар?');">
+                        <button class="bg-red-500 text-white px-3 py-1 rounded">Видалити</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

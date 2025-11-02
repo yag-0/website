@@ -1,21 +1,26 @@
-{% extends "base.html" %} {% block title %}Зворотній звязок{% endblock %} {% block
-content %}
+{% extends "base.html" %}
+{% block title %}Зворотній звязок{% endblock %}
+{% block content %}
 <h1 class="text-3xl font-bold mb-4">Зворотній звязок</h1>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div>
         <p class="text-lg">
-            Номер телефону- 066-000-00-00<br>
-            Телеграм канал- technoinlutsk<br>
+            Номер телефону - 066-000-00-00<br>
+            Телеграм канал - technoinlutsk<br>
             Інстаграм - techno.lutsk
         </p>
+
+        <h2 class="mt-6 font-semibold">Надіслати повідомлення</h2>
+        <form action="{{ url_for('create_feedback') }}" method="post" class="space-y-3 mt-3">
+            <input type="text" name="name" placeholder="Ваше ім'я" class="w-full p-2 border rounded" />
+            <input type="email" name="email" placeholder="Email" class="w-full p-2 border rounded" />
+            <textarea name="message" placeholder="Ваш відгук" class="w-full p-2 border rounded" rows="5"></textarea>
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Відправити</button>
+        </form>
     </div>
 
     <div>
-        <img
-            src="{{ url_for('static', filename='b39b2493-1-15564.jpg') }}"
-            alt="Placeholder"
-            class="w-full rounded-lg shadow-md"
-        />
+        <img src="{{ url_for('static', filename='b39b2493-1-15564.jpg') }}" alt="Placeholder" class="w-full rounded-lg shadow-md" />
     </div>
 </div>
 {% endblock %}

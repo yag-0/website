@@ -37,7 +37,6 @@ lab03-flaskProject/
 ├── app.py
 ├── models.py
 ├── requirements.txt
-├── init_db.py
 ├── reset_db.py
 ├── seed.py
 ├── static/

@@ -31,9 +31,20 @@
                 <td class="p-2">
                     <ul class="list-disc pl-5">
                         {% for item in o.items %}
-                            <li>{{ item.product.name }} x{{ item.quantity }} ({{ '%.2f'|format(item.price) }} грн)</li>
+                            <li>{{ item.name or 'Товар' }} x{{ item.quantity }} ({{ '%.2f'|format(item.price) }} грн)</li>
                         {% endfor %}
                     </ul>
+                    {% set subtotal = namespace(value=0) %}
+                    {% for item in o.items %}
+                        {% set subtotal.value = subtotal.value + (item.price * item.quantity) %}
+                    {% endfor %}
+                    <div class="mt-2 pt-2 border-t">
+                        <div class="font-semibold">Сума: {{ '%.2f'|format(subtotal.value) }} грн</div>
+                        {% if o.promo_code %}
+                            <div class="text-green-600">Промокод: {{ o.promo_code }} (-{{ '%.2f'|format(o.discount_amount) }} грн)</div>
+                            <div class="font-bold text-blue-600">До сплати: {{ '%.2f'|format(subtotal.value - o.discount_amount) }} грн</div>
+                        {% endif %}
+                    </div>
                 </td>
                 <td class="p-2">{{ o.created_at }}</td>
                 <td class="p-2"></td>

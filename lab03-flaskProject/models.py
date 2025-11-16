@@ -1,4 +1,16 @@
 from datetime import datetime
+import sqlite3
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, 'site.db')
+
+
+def get_db_connection():
+    """Create a new database connection for API requests."""
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 
 def initialize_db(conn):
@@ -73,3 +85,115 @@ def initialize_db(conn):
                 ('1234', 10.0, 1, datetime.utcnow().isoformat()),
             )
             conn.commit()
+
+
+# API Helper Functions
+
+def get_products():
+    """Get all products from database."""
+    conn = get_db_connection()
+    products = conn.execute('SELECT * FROM products').fetchall()
+    conn.close()
+    return products
+
+
+def get_orders():
+    """Get all orders with customer info."""
+    conn = get_db_connection()
+    orders = conn.execute('''
+        SELECT o.*, c.name as customer_name, c.email as customer_email 
+        FROM orders o 
+        LEFT JOIN customers c ON o.customer_id = c.id
+        ORDER BY o.created_at DESC
+    ''').fetchall()
+    conn.close()
+    return orders
+
+
+def get_order_details(order_id):
+    """Get order with items details."""
+    conn = get_db_connection()
+    
+    # Get order info
+    order = conn.execute('''
+        SELECT o.*, c.name as customer_name, c.email as customer_email, c.phone
+        FROM orders o
+        LEFT JOIN customers c ON o.customer_id = c.id
+        WHERE o.id = ?
+    ''', (order_id,)).fetchone()
+    
+    # Get order items
+    items = conn.execute('''
+        SELECT oi.*, p.name as product_name
+        FROM order_items oi
+        LEFT JOIN products p ON oi.product_id = p.id
+        WHERE oi.order_id = ?
+    ''', (order_id,)).fetchall()
+    
+    conn.close()
+    return order, items
+
+
+def add_order(customer_name, customer_email, customer_phone, cart, promo_code=None):
+    """Create new order from cart data."""
+    conn = get_db_connection()
+    
+    # Create or find customer
+    customer = conn.execute('SELECT * FROM customers WHERE email = ?', (customer_email,)).fetchone()
+    if customer:
+        customer_id = customer['id']
+    else:
+        cursor = conn.execute(
+            'INSERT INTO customers (name, email, phone) VALUES (?, ?, ?)',
+            (customer_name, customer_email, customer_phone)
+        )
+        customer_id = cursor.lastrowid
+    
+    # Calculate total and discount
+    total = sum(item['price'] * item['quantity'] for item in cart.values())
+    discount = 0.0
+    
+    if promo_code:
+        promo = conn.execute(
+            'SELECT discount_percent FROM promo_codes WHERE code = ? AND active = 1',
+            (promo_code,)
+        ).fetchone()
+        if promo:
+            discount = total * (promo['discount_percent'] / 100.0)
+    
+    # Create order
+    cursor = conn.execute(
+        'INSERT INTO orders (customer_id, status, created_at, promo_code, discount_amount) VALUES (?, ?, ?, ?, ?)',
+        (customer_id, 'new', datetime.utcnow().isoformat(), promo_code, discount)
+    )
+    order_id = cursor.lastrowid
+    
+    # Add order items
+    for item in cart.values():
+        conn.execute(
+            'INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)',
+            (order_id, item['id'], item['quantity'], item['price'])
+        )
+    
+    conn.commit()
+    conn.close()
+    return order_id
+
+
+def update_order_status(order_id, status):
+    """Update order status. Returns True if updated, False if not found."""
+    conn = get_db_connection()
+    cur = conn.execute('UPDATE orders SET status = ? WHERE id = ?', (status, order_id))
+    conn.commit()
+    updated = cur.rowcount > 0
+    conn.close()
+    return updated
+
+
+def delete_order(order_id):
+    """Delete order and its items."""
+    conn = get_db_connection()
+    conn.execute('DELETE FROM order_items WHERE order_id = ?', (order_id,))
+    conn.execute('DELETE FROM orders WHERE id = ?', (order_id,))
+    conn.commit()
+    conn.close()

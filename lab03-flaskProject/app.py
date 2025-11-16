@@ -4,6 +4,8 @@ from types import SimpleNamespace
 from datetime import datetime
 import os
 from models import initialize_db
+from flasgger import Swagger
+from api import api_bp
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -11,6 +13,35 @@ DB_PATH = os.path.join(BASE_DIR, 'site.db')
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET', 'dev-secret')
+
+# Налаштування Swagger
+swagger_config = {
+    "headers": [],
+    "specs": [
+        {
+            "endpoint": 'apispec',
+            "route": '/apispec.json',
+            "rule_filter": lambda rule: True,
+            "model_filter": lambda tag: True,
+        }
+    ],
+    "static_url_path": "/flasgger_static",
+    "swagger_ui": True,
+    "specs_route": "/apidocs/"
+}
+
+swagger_template = {
+    "info": {
+        "title": "Flask Market API",
+        "description": "REST API для інтернет-магазину",
+        "version": "1.0.0"
+    }
+}
+
+swagger = Swagger(app, config=swagger_config, template=swagger_template)
+
+# Реєстрація API Blueprint
+app.register_blueprint(api_bp)
 
 # Глобальний прапорець для ініціалізації БД (одноразово)
 _db_initialized = False
@@ -556,10 +587,20 @@ def admin_orders():
 @admin_required
 def admin_orders_update_status(order_id):
     new_status = request.form.get('status')
+    # normalize and validate
+    status = (new_status or '').strip().lower()
+    allowed = {'new','processing','shipped','completed','cancelled'}
+    if status not in allowed:
+        flash('Некоректний статус замовлення', 'error')
+        return redirect(url_for('admin_orders'))
+
     db = get_db()
-    db.execute('UPDATE orders SET status = ? WHERE id = ?', (new_status, order_id))
+    cur = db.execute('UPDATE orders SET status = ? WHERE id = ?', (status, order_id))
     db.commit()
-    flash('Статус замовлення оновлено', 'success')
+    if cur.rowcount == 0:
+        flash('Замовлення не знайдено', 'error')
+    else:
+        flash('Статус замовлення оновлено', 'success')
     return redirect(url_for('admin_orders'))
 
 

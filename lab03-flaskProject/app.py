@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, g, session
+from flask_cors import CORS
 import sqlite3
 from types import SimpleNamespace
 from datetime import datetime
@@ -13,6 +14,8 @@ DB_PATH = os.path.join(BASE_DIR, 'site.db')
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET', 'dev-secret')
+
+CORS(app)
 
 # Налаштування Swagger
 swagger_config = {
@@ -103,6 +106,13 @@ def home():
 @app.route('/about')
 def about():
     return render_template('about.html')
+
+
+@app.route('/api-demo')
+def api_demo():
+    """Landing page that showcases calling the REST API from frontend."""
+    return render_template('api-demo.html')
+
 
 @app.route('/HELP', methods=['GET'])
 def helppage():

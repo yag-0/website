@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block title %}API Demo - Інтеграція Frontend{% endblock %}
+
+{% block content %}
+<style>
+    /* Додаткові стилі для API Demo */
+    .api-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .demo-section {
+        animation: fadeIn 0.5s ease-in;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<!-- Заголовок -->
+<div class="text-center mb-8">
+    <div class="inline-block api-card text-white px-6 py-3 rounded-full mb-4">
+        <h1 class="text-3xl font-bold">🔌 API Demo</h1>
+    </div>
+    <p class="text-gray-600 text-lg">Проста демонстрація інтеграції frontend з REST API</p>
+    <p class="text-sm text-gray-500 mt-2">
+        Базова адреса: <code class="bg-gray-100 px-2 py-1 rounded">{{ request.url_root }}api</code>
+    </p>
+</div>
+
+<!-- Повідомлення -->
+<div id="message" class="hidden mb-6 p-4 rounded-lg"></div>
+
+<!-- Блок Products -->
+<div class="demo-section bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg shadow-lg p-6 mb-6 border-2 border-blue-200">
+    <div class="flex items-center justify-between mb-4">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                📦 Продукти
+                <span class="text-sm font-normal text-gray-500">(GET {{ url_for('api.get_all_products', _external=False) }})</span>
+            </h2>
+        </div>
+        <button onclick="loadProducts()" 
+                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition shadow-md hover:shadow-lg">
+            🔄 Оновити
+        </button>
+    </div>
+    <div id="loading-products" class="hidden text-center py-4 text-gray-600">
+        ⏳ Завантаження...
+    </div>
+    <div id="products-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+</div>
+
+<!-- Блок Feedback -->
+<div class="demo-section bg-gradient-to-br from-green-50 to-green-100 rounded-lg shadow-lg p-6 border-2 border-green-200">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+        💬 Відгуки
+        <span class="text-sm font-normal text-gray-500">(CRUD операції)</span>
+    </h2>
+    
+    <!-- Форма додавання відгуку -->
+    <div class="bg-white rounded-lg p-4 mb-6 shadow-md">
+        <h3 class="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            ➕ Додати новий відгук
+            <span class="text-xs font-normal text-gray-500">(POST {{ url_for('api.create_feedback', _external=False) }})</span>
+        </h3>
+        <form id="feedbackForm" class="space-y-3">
+            <input type="text" id="name" placeholder="Ім'я" required
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+            <input type="email" id="email" placeholder="Email" required
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+            <textarea id="feedbackMessage" placeholder="Ваш відгук" rows="3" required
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"></textarea>
+            <button type="submit" 
+                    class="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition shadow-md hover:shadow-lg">
+                ➕ Додати відгук
+            </button>
+        </form>
+    </div>
+
+    <!-- Список відгуків -->
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold text-gray-700 flex items-center gap-2">
+            Усі відгуки
+            <span class="text-xs font-normal text-gray-500">(GET {{ url_for('api.get_all_feedback', _external=False) }})</span>
+        </h3>
+        <button onclick="loadFeedback()" 
+                class="text-sm bg-white hover:bg-gray-50 text-gray-700 px-3 py-1 rounded-lg transition shadow">
+            🔄 Оновити
+        </button>
+    </div>
+    <div id="loading-feedback" class="hidden text-center py-4 text-gray-600">
+        ⏳ Завантаження...
+    </div>
+    <div id="feedback-list" class="space-y-3"></div>
+</div>
+
+<!-- Документація API -->
+<div class="mt-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg shadow-lg p-6 border-2 border-purple-200">
+    <h3 class="text-xl font-bold text-gray-800 mb-3">📚 Документація API</h3>
+    <p class="text-gray-700 mb-3">
+        Повна документація доступна через Swagger UI:
+    </p>
+    <a href="{{ url_for('flasgger.apidocs') }}" target="_blank" 
+       class="inline-block bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold transition shadow-md hover:shadow-lg">
+        📖 Відкрити Swagger Docs
+    </a>
+</div>
+
+<script>
+    // Базова адреса API
+    const API_BASE = '/api';
+
+    // ========================================
+    // Функції для повідомлень
+    // ========================================
+    function showMessage(text, type) {
+        const messageBox = document.getElementById('message');
+        messageBox.textContent = text;
+        messageBox.className = `p-4 rounded-lg mb-6 shadow-lg ${
+            type === 'success' ? 'bg-green-100 text-green-800 border-2 border-green-300' : 
+                                'bg-red-100 text-red-800 border-2 border-red-300'
+        }`;
+        messageBox.classList.remove('hidden');
+        setTimeout(() => messageBox.classList.add('hidden'), 5000);
+    }
+
+    // ========================================
+    // Функції для Products
+    // ========================================
+    async function loadProducts() {
+        const loadingEl = document.getElementById('loading-products');
+        const listEl = document.getElementById('products-list');
+        
+        try {
+            loadingEl.classList.remove('hidden');
+            
+            const response = await fetch(`${API_BASE}/products`);
+            if (!response.ok) throw new Error('Помилка завантаження продуктів');
+            
+            const products = await response.json();
+            
+            listEl.innerHTML = '';
+            
+            if (products.length === 0) {
+                listEl.innerHTML = '<p class="text-gray-500 text-center py-4 col-span-full">Продуктів поки немає</p>';
+            } else {
+                products.forEach(product => {
+                    const productCard = `
+                        <div class="bg-white border-2 border-blue-200 rounded-lg p-4 hover:shadow-xl transition transform hover:-translate-y-1">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">ID: ${product.id}</span>
+                            </div>
+                            <h3 class="font-semibold text-gray-800 mb-2 text-lg">${product.name}</h3>
+                            <p class="text-blue-600 font-bold text-xl">${product.price.toFixed(2)} грн</p>
+                        </div>
+                    `;
+                    listEl.innerHTML += productCard;
+                });
+            }
+            
+            loadingEl.classList.add('hidden');
+        } catch (error) {
+            loadingEl.classList.add('hidden');
+            showMessage('❌ ' + error.message, 'error');
+        }
+    }
+
+    // ========================================
+    // Функції для Feedback
+    // ========================================
+    async function loadFeedback() {
+        const loadingEl = document.getElementById('loading-feedback');
+        const listEl = document.getElementById('feedback-list');
+        
+        try {
+            loadingEl.classList.remove('hidden');
+            
+            const response = await fetch(`${API_BASE}/feedback`);
+            if (!response.ok) throw new Error('Помилка завантаження відгуків');
+            
+            const feedbacks = await response.json();
+            
+            listEl.innerHTML = '';
+            
+            if (feedbacks.length === 0) {
+                listEl.innerHTML = '<p class="text-gray-500 text-center py-4">Відгуків поки немає</p>';
+            } else {
+                feedbacks.forEach(feedback => {
+                    const feedbackCard = `
+                        <div class="bg-white border-2 border-green-200 rounded-lg p-4 hover:shadow-lg transition">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <p class="font-semibold text-gray-800">${feedback.name}</p>
+                                        <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">ID: ${feedback.id}</span>
+                                    </div>
+                                    <p class="text-sm text-gray-500">${feedback.email}</p>
+                                </div>
+                                <button onclick="deleteFeedback(${feedback.id})" 
+                                        class="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded transition"
+                                        title="Видалити відгук (DELETE ${API_BASE}/feedback/${feedback.id})">
+                                    🗑️
+                                </button>
+                            </div>
+                            <p class="text-gray-700 mt-2">${feedback.message}</p>
+                        </div>
+                    `;
+                    listEl.innerHTML += feedbackCard;
+                });
+            }
+            
+            loadingEl.classList.add('hidden');
+        } catch (error) {
+            loadingEl.classList.add('hidden');
+            showMessage('❌ ' + error.message, 'error');
+        }
+    }
+
+    async function addFeedback(name, email, message) {
+        try {
+            const response = await fetch(`${API_BASE}/feedback`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, email, message })
+            });
+            
+            if (!response.ok) throw new Error('Помилка додавання відгуку');
+            
+            showMessage('✅ Відгук успішно додано!', 'success');
+            await loadFeedback();
+            
+        } catch (error) {
+            showMessage('❌ ' + error.message, 'error');
+        }
+    }
+
+    async function deleteFeedback(id) {
+        if (!confirm('Видалити цей відгук?')) return;
+        
+        try {
+            const response = await fetch(`${API_BASE}/feedback/${id}`, {
+                method: 'DELETE'
+            });
+            
+            if (!response.ok) throw new Error('Помилка видалення відгуку');
+            
+            showMessage('✅ Відгук видалено!', 'success');
+            await loadFeedback();
+            
+        } catch (error) {
+            showMessage('❌ ' + error.message, 'error');
+        }
+    }
+
+    // ========================================
+    // Обробка форми
+    // ========================================
+    document.getElementById('feedbackForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const message = document.getElementById('feedbackMessage').value.trim();
+        
+        if (name && email && message) {
+            await addFeedback(name, email, message);
+            e.target.reset();
+        }
+    });
+
+    // ========================================
+    // Завантаження при старті
+    // ========================================
+    window.addEventListener('load', () => {
+        loadProducts();
+        loadFeedback();
+    });
+</script>
+{% endblock %}

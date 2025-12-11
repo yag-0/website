@@ -10,10 +10,10 @@ from api import api_bp
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, 'site.db')
+DB_PATH = os.environ.get('DATABASE_PATH', os.path.join(BASE_DIR, 'site.db'))
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET', 'dev-secret')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret')
 
 CORS(app)
 
@@ -633,10 +633,26 @@ def admin_customers_delete(customer_id):
     return redirect(url_for('admin_customers'))
 
 
+@app.route('/health')
+def health():
+    """Простий healthcheck: перевірка підключення до БД."""
+    try:
+        conn = get_db()
+        conn.execute('SELECT 1')
+        return {'status': 'healthy', 'database': 'connected'}, 200
+    except Exception as exc:  # pragma: no cover - простий health
+        return {'status': 'unhealthy', 'error': str(exc)}, 500
+
+
 if __name__ == '__main__':
-    host = os.environ.get('FLASK_RUN_HOST', '127.0.0.1')
+    # Use 0.0.0.0 by default in Docker to allow external connections
+    host = os.environ.get('FLASK_RUN_HOST', '0.0.0.0')
     try:
         port = int(os.environ.get('FLASK_RUN_PORT', '5000'))
     except ValueError:
         port = 5000
+    # Ensure DB directory exists
+    db_dir = os.path.dirname(DB_PATH)
+    if db_dir:
+        os.makedirs(db_dir, exist_ok=True)
     app.run(debug=True, host=host, port=port)

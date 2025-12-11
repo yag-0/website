@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+.env
+.env.example
+.DS_Store
+.vscode/
+.idea/
+htmlcov/
+.coverage
+.pytest_cache/
+*.sqlite
+site.db
+lab03-flaskProject/data/
+lab03-flaskProject/site.db

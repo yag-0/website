@@ -2,12 +2,16 @@
 FROM python:3.11-slim as builder
 
 WORKDIR /tmp
-# Install dependencies from local requirements (build context = lab03-flaskProject)
-COPY requirements.txt ./requirements.txt
-# Create a virtual environment and install dependencies into it
+# Copy entire build context; handle both repo-root and subfolder contexts
+COPY . /tmp/context
+# Create a virtual environment, detect requirements.txt path, install deps, and stage app source
 RUN python -m venv /opt/venv \
   && /opt/venv/bin/pip install --upgrade pip \
-  && /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+  && REQ="/tmp/context/requirements.txt" \
+  && if [ ! -f "$REQ" ]; then REQ="/tmp/context/lab03-flaskProject/requirements.txt"; fi \
+  && /opt/venv/bin/pip install --no-cache-dir -r "$REQ" \
+  && mkdir -p /opt/appsrc \
+  && if [ -d "/tmp/context/lab03-flaskProject" ]; then cp -a /tmp/context/lab03-flaskProject/. /opt/appsrc/; else cp -a /tmp/context/. /opt/appsrc/; fi
 
 # Production stage
 FROM python:3.11-slim
@@ -23,11 +27,11 @@ RUN apt-get update \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Copy Python virtualenv з builder stage
+# Copy Python virtualenv та підготовлене джерело застосунку з builder stage
 COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /opt/appsrc /app
 
-# Copy application source
-COPY . .
+
 
 # Create data directory for SQLite
 RUN mkdir -p /app/data && chmod 755 /app/data

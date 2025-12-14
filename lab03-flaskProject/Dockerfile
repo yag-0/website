@@ -2,9 +2,12 @@
 FROM python:3.11-slim as builder
 
 WORKDIR /tmp
-# When building from repo root on Render, requirements.txt is under lab03-flaskProject/
-COPY lab03-flaskProject/requirements.txt ./requirements.txt
-RUN pip install --user --no-cache-dir -r requirements.txt
+# Install dependencies from local requirements (build context = lab03-flaskProject)
+COPY requirements.txt ./requirements.txt
+# Create a virtual environment and install dependencies into it
+RUN python -m venv /opt/venv \
+  && /opt/venv/bin/pip install --upgrade pip \
+  && /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
 
 # Production stage
 FROM python:3.11-slim
@@ -20,18 +23,18 @@ RUN apt-get update \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Copy Python dependencies з builder stage
-COPY --from=builder /root/.local /root/.local
+# Copy Python virtualenv з builder stage
+COPY --from=builder /opt/venv /opt/venv
 
-# Copy application (from subdirectory when build context is repo root)
-COPY lab03-flaskProject/ .
+# Copy application source
+COPY . .
 
 # Create data directory for SQLite
 RUN mkdir -p /app/data && chmod 755 /app/data
 
 # Set environment
-ENV PATH=/root/.local/bin:$PATH \
-    PYTHONUNBUFFERED=1 \
+ENV PATH=/opt/venv/bin:$PATH \
+  PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     FLASK_APP=app.py \
     FLASK_ENV=production \

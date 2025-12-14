@@ -1,4 +1,0 @@
-# Send only the app folder to Docker build context
-/*
-!/lab03-flaskProject
-!/requirements.txt

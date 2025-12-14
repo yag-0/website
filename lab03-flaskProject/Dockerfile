@@ -2,7 +2,8 @@
 FROM python:3.11-slim as builder
 
 WORKDIR /tmp
-COPY requirements.txt .
+# When building from repo root on Render, requirements.txt is under lab03-flaskProject/
+COPY lab03-flaskProject/requirements.txt ./requirements.txt
 RUN pip install --user --no-cache-dir -r requirements.txt
 
 # Production stage
@@ -22,8 +23,8 @@ RUN apt-get update \
 # Copy Python dependencies з builder stage
 COPY --from=builder /root/.local /root/.local
 
-# Copy application
-COPY . .
+# Copy application (from subdirectory when build context is repo root)
+COPY lab03-flaskProject/ .
 
 # Create data directory for SQLite
 RUN mkdir -p /app/data && chmod 755 /app/data

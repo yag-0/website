@@ -2,5 +2,5 @@ Flask==3.0.0
 Werkzeug==3.0.1
 flasgger==0.9.7.1
 Flask-Cors==4.0.0
-rpds-py==0.18.0
+rpds-py==0.28.0
 requests==2.31.0

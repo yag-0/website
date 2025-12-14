@@ -63,9 +63,6 @@ def get_db():
     return g.db
 
 
- 
-
-
 def close_db(e=None):
     db = g.pop('db', None)
     if db is not None:
@@ -76,12 +73,10 @@ app.teardown_appcontext(close_db)
 
 
 def row_to_obj(row):
+    """Конвертує SQLite Row до SimpleNamespace"""
     if row is None:
         return None
     return SimpleNamespace(**dict(row))
-
-
-"""Проєкт спрощено: прибрано користувацькі акаунти, залишено лише просту адмін авторизацію паролем."""
 
 
 def admin_required(f):
@@ -93,9 +88,6 @@ def admin_required(f):
             return redirect(url_for('admin_login'))
         return f(*args, **kwargs)
     return decorated_function
-
-
-# База даних автоматично ініціалізується в get_db() при першому підключенні
 
 
 @app.route('/')
@@ -116,9 +108,17 @@ def api_demo():
 
 @app.route('/HELP', methods=['GET'])
 def helppage():
-    return render_template('HELP.html')
+    """Redirect old /HELP to /reviews for backward compatibility."""
+    return redirect(url_for('reviews_page'))
 
 
+@app.route('/reviews', methods=['GET'])
+def reviews_page():
+    """Display reviews page with form and all user feedback."""
+    db = get_db()
+    cur = db.execute('SELECT id, name, email, message, created_at FROM feedback ORDER BY created_at DESC')
+    reviews = [row_to_obj(r) for r in cur.fetchall()]
+    return render_template('reviews.html', reviews=reviews)
 
 
 @app.route('/feedback', methods=['POST'])
@@ -128,13 +128,13 @@ def create_feedback():
     message = request.form.get('message')
     if not message:
         flash('Повідомлення не може бути порожнім', 'error')
-        return redirect(url_for('helppage'))
+        return redirect(url_for('reviews_page'))
     db = get_db()
     db.execute('INSERT INTO feedback (name,email,message,created_at) VALUES (?,?,?,?)',
                (name, email, message, datetime.utcnow().isoformat()))
     db.commit()
     flash('Дякуємо за відгук!', 'success')
-    return redirect(url_for('helppage'))
+    return redirect(url_for('reviews_page'))
 
 
 @app.route('/market')
@@ -357,6 +357,7 @@ def cart_checkout():
 
 @app.route('/order/create', methods=['POST'])
 def create_order():
+    """Створити замовлення окремого товару"""
     try:
         product_id = int(request.form.get('product_id'))
         quantity = int(request.form.get('quantity', 1))
@@ -375,7 +376,6 @@ def create_order():
         flash('Товар не знайдено', 'error')
         return redirect(url_for('market'))
 
-    # find or create customer by email
     customer = None
     if email:
         cur = db.execute('SELECT * FROM customers WHERE email = ?', (email,))
@@ -394,21 +394,15 @@ def create_order():
 
     db.execute('INSERT INTO order_items (order_id,product_id,quantity,price) VALUES (?,?,?,?)',
                (order_id, product_id, quantity, prod['price']))
-    # Optionally reduce stock
-    try:
-        new_stock = prod['stock'] - quantity
-        if new_stock < 0:
-            new_stock = 0
-        db.execute('UPDATE products SET stock = ? WHERE id = ?', (new_stock, product_id))
-    except Exception:
-        pass
+    
+    new_stock = prod['stock'] - quantity
+    if new_stock < 0:
+        new_stock = 0
+    db.execute('UPDATE products SET stock = ? WHERE id = ?', (new_stock, product_id))
     db.commit()
 
     flash('Замовлення створено. Дякуємо!', 'success')
     return redirect(url_for('market'))
-
-
-# === ADMIN ROUTES ===
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     if request.method == 'POST':

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Мій Flask проєкт{% endblock %}</title>
+    <title>{% block title %}Etkaroz{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @keyframes slideDown {
@@ -32,25 +32,115 @@
         .open .line3 {
             transform: rotate(45deg) translate(-5px, -6px);
         }
+        
+        /* Dark mode styles */
+        html.dark {
+            color-scheme: dark;
+        }
+        
+        html.dark body {
+            background-color: #111827;
+            color: white;
+        }
+        
+        html.dark .bg-white {
+            background-color: #1f2937;
+        }
+        
+        html.dark .bg-gray-100 {
+            background-color: #111827;
+        }
+        
+        html.dark .bg-gray-50 {
+            background-color: #374151;
+        }
+        
+        html.dark .text-gray-700 {
+            color: #d1d5db;
+        }
+        
+        html.dark .text-gray-800 {
+            color: #f3f4f6;
+        }
+        
+        html.dark .text-gray-500 {
+            color: #9ca3af;
+        }
+        
+        html.dark .border-gray-300 {
+            border-color: #4b5563;
+        }
+        
+        html.dark .bg-blue-50 {
+            background-color: #1e3a8a;
+        }
+        
+        html.dark .text-red-800 {
+            color: #fca5a5;
+        }
+        
+        html.dark .bg-red-200 {
+            background-color: #7f1d1d;
+        }
+        
+        html.dark .text-green-800 {
+            color: #86efac;
+        }
+        
+        html.dark .bg-green-200 {
+            background-color: #15803d;
+        }
+        
+        html.dark .text-blue-800 {
+            color: #93c5fd;
+        }
+        
+        html.dark .bg-blue-200 {
+            background-color: #1e40af;
+        }
+        
+        .theme-toggle {
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .theme-toggle:hover {
+            transform: scale(1.2);
+        }
     </style>
 </head>
 <body class="bg-gray-100">
-    <nav class="bg-blue-500 p-4">
+    <nav class="bg-gray-700 p-4">
         <div class="container mx-auto flex justify-between items-center">
-            <a href="/" class="text-white text-xl font-bold transition-transform duration-300 hover:scale-110">Мій проєкт</a>
+            <a href="/" class="text-white text-xl font-bold transition-transform duration-300 hover:scale-110">Etkaroz</a>
             <div class="hidden md:flex space-x-4 items-center">
-                <a href="/" class="text-white hover:text-blue-200 transition-colors duration-300 hover:underline">Головна</a>
-                <a href="/market" class="text-white hover:text-blue-200 transition-colors duration-300 hover:underline">Магазин</a>
-                <a href="/about" class="text-white hover:text-blue-200 transition-colors duration-300 hover:underline">Про нас</a>
-                <a href="/HELP" class="text-white hover:text-blue-200 transition-colors duration-300 hover:underline">Зворотній зв'язок</a>
+                <a href="/" class="text-white hover:text-blue-200 transition-colors duration-300 flex items-center gap-1">
+                    <span>⌂</span>
+                    Головна
+                </a>
+                <a href="/market" class="text-white hover:text-blue-200 transition-colors duration-300 flex items-center gap-1">
+                    <span>⛁</span>
+                    Магазин
+                </a>
                 <a href="/cart" class="text-white hover:text-blue-200 transition-colors duration-300 flex items-center gap-1">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
                     Кошик
                 </a>
-                <a href="/admin" class="text-white hover:text-blue-200 transition-colors duration-300">Адмін</a>
-                <a href="/api-demo" class="text-white hover:text-blue-200 transition-colors duration-300">🔌 API Demo</a>
+                <a href="/reviews" class="text-white hover:text-blue-200 transition-colors duration-300 flex items-center gap-1">
+                    <span>💭</span>
+                    Відгуки
+                </a>
+                <a href="/about" class="text-white hover:text-blue-200 transition-colors duration-300 flex items-center gap-1">
+                    <span>ⓘ</span>
+                    Про нас
+                </a>
+                <a href="/api-demo" class="text-white hover:text-blue-200 transition-colors duration-300 flex items-center gap-1">
+                    <span>⚡</span>
+                    API Demo
+                </a>
+                <button id="theme-toggle" class="theme-toggle text-2xl" title="Змінити тему">☀️</button>
             </div>
             <button id="mobile-menu-button" class="md:hidden text-white w-6 h-6 relative focus:outline-none">
                 <span class="burger-line block absolute h-0.5 w-6 bg-current transform transition duration-500 ease-in-out line1"></span>
@@ -59,13 +149,13 @@
             </button>
         </div>
         <div id="mobile-menu" class="hidden md:hidden overflow-hidden">
-            <a href="/" class="block text-white hover:text-blue-200 py-2 transform transition duration-300 hover:translate-x-2">Головна</a>
-            <a href="/market" class="block text-white hover:text-blue-200 py-2 transform transition duration-300 hover:translate-x-2">Магазин</a>
-            <a href="/about" class="block text-white hover:text-blue-200 py-2 transform transition duration-300 hover:translate-x-2">Про нас</a>
-            <a href="/HELP" class="block text-white hover:text-blue-200 py-2 transform transition duration-300 hover:translate-x-2">Зворотній зв'язок</a>
+            <a href="/" class="block text-white hover:text-blue-200 py-2 transform transition duration-300 hover:translate-x-2">⌂ Головна</a>
+            <a href="/market" class="block text-white hover:text-blue-200 py-2 transform transition duration-300 hover:translate-x-2">⛁ Магазин</a>
             <a href="/cart" class="block text-white hover:text-blue-200 py-2 transform transition duration-300 hover:translate-x-2">🛒 Кошик</a>
-            <a href="/admin" class="block text-white hover:text-blue-200 py-2 transform transition duration-300 hover:translate-x-2">Адмін</a>
-             <a href="/api-demo" class="block text-white hover:text-blue-200 py-2 transform transition duration-300 hover:translate-x-2">🔌 API Demo</a>
+            <a href="/reviews" class="block text-white hover:text-blue-200 py-2 transform transition duration-300 hover:translate-x-2">💭 Відгуки</a>
+            <a href="/about" class="block text-white hover:text-blue-200 py-2 transform transition duration-300 hover:translate-x-2">ⓘ Про нас</a>
+            <a href="/api-demo" class="block text-white hover:text-blue-200 py-2 transform transition duration-300 hover:translate-x-2">⚡ API Demo</a>
+            <button id="theme-toggle-mobile" class="theme-toggle block w-full text-left text-white hover:text-blue-200 py-2 transform transition duration-300 hover:translate-x-2" title="Змінити тему">☀️ Темна тема</button>
         </div>
     </nav>
 
@@ -91,6 +181,7 @@
     </div>
 
     <script>
+        // Mobile menu toggle
         const mobileMenuButton = document.getElementById('mobile-menu-button');
         const mobileMenu = document.getElementById('mobile-menu');
 
@@ -108,6 +199,126 @@
                 }, 300);
             }
         });
+        
+        // Dark mode toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeToggleMobile = document.getElementById('theme-toggle-mobile');
+        const html = document.documentElement;
+        
+        // Load saved theme preference or default to light mode
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+            html.classList.add('dark');
+            updateThemeButton();
+        }
+        
+        function updateThemeButton() {
+            const isDark = html.classList.contains('dark');
+            const icon = isDark ? '🌙' : '☀️';
+            const label = isDark ? '🌙 Світла тема' : '☀️ Темна тема';
+            if (themeToggle) themeToggle.textContent = icon;
+            if (themeToggleMobile) themeToggleMobile.textContent = label;
+        }
+        
+        function toggleTheme() {
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeButton();
+        }
+        
+        if (themeToggle) {
+            themeToggle.addEventListener('click', toggleTheme);
+        }
+        if (themeToggleMobile) {
+            themeToggleMobile.addEventListener('click', toggleTheme);
+        }
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            // Don't trigger if user is typing in an input field
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                return;
+            }
+            
+            // Check for Alt key combinations for better UX
+            if (e.altKey) {
+                switch(e.key.toLowerCase()) {
+                    case 'h':
+                    case '1':
+                        e.preventDefault();
+                        window.location.href = '/';
+                        break;
+                    case 'm':
+                    case '2':
+                        e.preventDefault();
+                        window.location.href = '/market';
+                        break;
+                    case 'c':
+                    case '3':
+                        e.preventDefault();
+                        window.location.href = '/cart';
+                        break;
+                    case 'r':
+                    case '4':
+                        e.preventDefault();
+                        window.location.href = '/reviews';
+                        break;
+                    case 'a':
+                    case '5':
+                        e.preventDefault();
+                        window.location.href = '/about';
+                        break;
+                    case 'd':
+                    case '6':
+                        e.preventDefault();
+                        window.location.href = '/api-demo';
+                        break;
+                    case 't':
+                        e.preventDefault();
+                        toggleTheme();
+                        break;
+                }
+            }
+        });
+        
+        // Show keyboard shortcuts hint on page load
+        const showKeyboardHint = () => {
+            const hint = document.createElement('div');
+            hint.id = 'keyboard-hint';
+            hint.innerHTML = `
+                <div style="position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 15px 20px; border-radius: 10px; font-size: 12px; z-index: 1000; max-width: 300px;">
+                    <div style="font-weight: bold; margin-bottom: 8px;">⌨️ Гарячі клавіші (Alt+):</div>
+                    <div style="display: grid; grid-template-columns: auto 1fr; gap: 5px 10px;">
+                        <span>Alt+H або Alt+1</span><span>Головна</span>
+                        <span>Alt+M або Alt+2</span><span>Магазин</span>
+                        <span>Alt+C або Alt+3</span><span>Кошик</span>
+                        <span>Alt+R або Alt+4</span><span>Відгуки</span>
+                        <span>Alt+A або Alt+5</span><span>Про нас</span>
+                        <span>Alt+D або Alt+6</span><span>API Demo</span>
+                        <span>Alt+T</span><span>Темна тема</span>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: 5px; right: 5px; background: none; border: none; color: white; cursor: pointer; font-size: 18px;">×</button>
+                </div>
+            `;
+            document.body.appendChild(hint);
+            
+            // Auto-hide after 8 seconds
+            setTimeout(() => {
+                const hintEl = document.getElementById('keyboard-hint');
+                if (hintEl) {
+                    hintEl.style.transition = 'opacity 0.5s';
+                    hintEl.style.opacity = '0';
+                    setTimeout(() => hintEl.remove(), 500);
+                }
+            }, 8000);
+        };
+        
+        // Show hint only once per session
+        if (!sessionStorage.getItem('keyboard-hint-shown')) {
+            setTimeout(showKeyboardHint, 1000);
+            sessionStorage.setItem('keyboard-hint-shown', 'true');
+        }
     </script>
 </body>
 </html>

@@ -1,9 +1,11 @@
+version: '3.8'
+
 services:
   web:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: flask_app
+    container_name: flask_market_app
     ports:
       - "5000:5000"
     environment:
@@ -11,15 +13,28 @@ services:
       - FLASK_ENV=production
       - FLASK_RUN_HOST=0.0.0.0
       - DATABASE_PATH=/app/data/database.db
-      - SECRET_KEY=${SECRET_KEY:-default-secret-key}
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      - PYTHONUNBUFFERED=1
     volumes:
       - ./site.db:/app/data/database.db
+      - ./logs:/app/logs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/health"]
       interval: 30s
-      timeout: 3s
+      timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 15s
+    networks:
+      - flask_network
+    labels:
+      - "com.example.description=Flask Market Web Application"
+
+volumes:
+  database_data:
+
+networks:
+  flask_network:
+    driver: bridge
 
 
